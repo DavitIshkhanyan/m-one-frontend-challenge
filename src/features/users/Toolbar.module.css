@@ -1,0 +1,81 @@
+.toolbar {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.controls {
+  display: grid;
+  gap: var(--space-3);
+}
+
+@media (min-width: 40rem) {
+  .controls {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+  }
+}
+
+.searchField {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.searchIcon {
+  position: absolute;
+  inset-inline-start: var(--space-3);
+  width: 1.125rem;
+  height: 1.125rem;
+  color: var(--fg-subtle);
+  pointer-events: none;
+}
+
+.input {
+  width: 100%;
+  min-height: 44px;
+  padding-block: var(--space-2);
+  padding-inline: calc(var(--space-3) * 2 + 1.125rem) var(--space-6);
+  color: var(--fg);
+  background-color: var(--bg-raised);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  transition: border-color var(--duration-fast) var(--ease);
+}
+
+.input::placeholder {
+  color: var(--fg-subtle);
+}
+
+.input:hover {
+  border-color: var(--fg-subtle);
+}
+
+/* The native decoration is not reliably keyboard reachable, so it is
+   replaced with a real button rather than sitting alongside one. */
+.input::-webkit-search-cancel-button,
+.input::-webkit-search-decoration {
+  appearance: none;
+}
+
+.clear {
+  position: absolute;
+  inset-inline-end: var(--space-1);
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  color: var(--fg-muted);
+  background: none;
+  border: none;
+  border-radius: var(--radius-sm);
+}
+
+.clear:hover {
+  color: var(--fg);
+  background-color: var(--bg-hover);
+}
+
+.count {
+  font-size: var(--text-sm);
+  color: var(--fg-muted);
+}

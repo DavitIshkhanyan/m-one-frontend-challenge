@@ -1,6 +1,6 @@
 .screen {
   display: grid;
-  grid-template-rows: auto 1fr;
+  grid-template-rows: auto auto 1fr;
   gap: var(--space-5);
   width: 100%;
   max-width: var(--content-max);

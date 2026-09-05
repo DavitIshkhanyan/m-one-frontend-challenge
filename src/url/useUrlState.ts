@@ -15,10 +15,8 @@ export type NavigateMode = 'push' | 'replace';
  */
 
 const listeners = new Set<() => void>();
-let snapshot = typeof window === 'undefined' ? '' : window.location.search;
 
 function emit(): void {
-  snapshot = window.location.search;
   for (const listener of listeners) listener();
 }
 
@@ -32,8 +30,17 @@ function subscribe(listener: () => void): () => void {
   };
 }
 
+/**
+ * Read live rather than from a cached copy.
+ *
+ * A cached snapshot desynchronises the moment anything calls history.pushState
+ * or replaceState without going through navigate() below - which is exactly
+ * what a test harness, a browser extension, or a future contributor will do.
+ * location.search is cheap, and returning a string keeps useSyncExternalStore
+ * happy because Object.is compares strings by value.
+ */
 function getSnapshot(): string {
-  return snapshot;
+  return window.location.search;
 }
 
 function getServerSnapshot(): string {

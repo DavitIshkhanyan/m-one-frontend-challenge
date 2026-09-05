@@ -14,6 +14,8 @@ export type UsersQueryState = {
    * with the failure reported above it, not blank the page.
    */
   readonly users: readonly User[];
+  /** How many users the server returned, before the query narrowed them. */
+  readonly total: number;
   readonly error: RequestError | null;
 };
 
@@ -49,6 +51,7 @@ export function useUsersQuery(query: string): UsersQuery {
   const [state, setState] = useState<UsersQueryState>({
     status: 'loading',
     users: [],
+    total: 0,
     error: null,
   });
 
@@ -70,6 +73,7 @@ export function useUsersQuery(query: string): UsersQuery {
         setState({
           status: 'success',
           users: users.filter((user) => matchesUser(user, query)),
+          total: users.length,
           error: null,
         });
       } catch (error) {
@@ -79,6 +83,7 @@ export function useUsersQuery(query: string): UsersQuery {
         setState((previous) => ({
           status: 'error',
           users: previous.users,
+          total: previous.total,
           error: toRequestError(error),
         }));
       }
