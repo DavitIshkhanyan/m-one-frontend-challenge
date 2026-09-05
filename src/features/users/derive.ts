@@ -14,7 +14,7 @@ import type { SortDirection } from './viewState';
  * sorted array, because reversing also reverses the tiebreaker and turns a
  * deterministic order back into an arbitrary one.
  */
-export function sortUsersByName(users: readonly User[], direction: SortDirection): User[] {
+export function sortUsersByName<T extends User>(users: readonly T[], direction: SortDirection): T[] {
   const factor = direction === 'desc' ? -1 : 1;
 
   return [...users].sort((a, b) => {
@@ -49,7 +49,7 @@ export function cityOptions(users: readonly User[]): string[] {
  * dataset, so normalising case or whitespace here would only mask upstream
  * inconsistency rather than fix it.
  */
-export function filterByCity(users: readonly User[], city: string): readonly User[] {
+export function filterByCity<T extends User>(users: readonly T[], city: string): readonly T[] {
   if (city === '') return users;
   return users.filter((user) => user.city === city);
 }

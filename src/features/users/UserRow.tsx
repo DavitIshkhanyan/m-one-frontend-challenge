@@ -1,4 +1,4 @@
-import type { User } from '../../data/types';
+import type { MergedUser } from '../../edits/merge';
 import styles from './UserRow.module.css';
 
 function initials(name: string): string {
@@ -12,7 +12,7 @@ export function UserRow({
   user,
   onSelect,
 }: {
-  readonly user: User;
+  readonly user: MergedUser;
   readonly onSelect: (id: number) => void;
 }) {
   const hasCity = user.city !== '';
@@ -31,14 +31,21 @@ export function UserRow({
         type="button"
         className={styles.row}
         onClick={() => onSelect(user.id)}
-        aria-label={`${user.name}, view details`}
+        aria-label={`${user.name}${user.isEdited ? ', edited' : ''}, view details`}
       >
         <span className={styles.avatar} aria-hidden="true">
           {initials(user.name)}
         </span>
 
         <span className={styles.content}>
-          <span className={styles.name}>{user.name}</span>
+          <span className={styles.nameLine}>
+            <span className={styles.name}>{user.name}</span>
+            {user.isEdited && (
+              <span className={styles.badge} aria-hidden="true">
+                Edited
+              </span>
+            )}
+          </span>
           <span className={styles.email}>{user.email}</span>
 
           <span className={styles.meta}>

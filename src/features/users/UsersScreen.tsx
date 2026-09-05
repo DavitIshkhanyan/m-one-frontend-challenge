@@ -1,11 +1,14 @@
 import { useMemo } from 'react';
-import type { User } from '../../data/types';
+import { matchesUser } from '../../data/search';
 import { useUsersQuery, type UsersQueryStatus } from '../../data/useUsersQuery';
+import { clearEdit, saveEdit, useEdits } from '../../edits/editsStore';
+import { applyEdits, type MergedUser } from '../../edits/merge';
+import { isPersistent } from '../../lib/storage';
 import { Toolbar } from './Toolbar';
 import { UserDetail, UserNotFound } from './UserDetail';
-import { cityOptions, filterByCity, sortUsersByName } from './derive';
 import { UserList } from './UserList';
 import styles from './UsersScreen.module.css';
+import { cityOptions, filterByCity, sortUsersByName } from './derive';
 import { EmptyState } from './states/EmptyState';
 import { ErrorState } from './states/ErrorState';
 import { NoResults } from './states/NoResults';
@@ -44,7 +47,7 @@ function Body({
   onSelect,
 }: {
   readonly status: UsersQueryStatus;
-  readonly users: readonly User[];
+  readonly users: readonly MergedUser[];
   readonly hasError: boolean;
   readonly isFiltered: boolean;
   readonly onClearFilters: () => void;
@@ -65,16 +68,32 @@ function Body({
 
 export function UsersScreen() {
   const view = useViewState();
-  const { status, users, allUsers, error, retry } = useUsersQuery(view.query);
+  const edits = useEdits();
+  const { status, users, error, retry } = useUsersQuery(view.query);
 
-  // Filter first, then sort: sorting the smaller set is cheaper, and the
-  // result is identical either way.
-  const visibleUsers = useMemo(
-    () => sortUsersByName(filterByCity(users, view.city), view.direction),
-    [users, view.city, view.direction],
+  /*
+   * The derived pipeline, in the order it has to happen.
+   *
+   * Merging comes first so that everything downstream - search, the city
+   * options, the detail lookup - operates on what the user is actually
+   * looking at rather than on what the server last said. Searching before
+   * merging would mean a user renamed on this device could not be found by
+   * their new name, which reads as a bug however it is explained.
+   */
+  const merged = useMemo(() => applyEdits(users, edits), [users, edits]);
+
+  const matched = useMemo(
+    () => merged.filter((user) => matchesUser(user, view.query)),
+    [merged, view.query],
   );
 
-  const cities = useMemo(() => cityOptions(allUsers), [allUsers]);
+  // Filter before sort: same result, smaller array to sort.
+  const visibleUsers = useMemo(
+    () => sortUsersByName(filterByCity(matched, view.city), view.direction),
+    [matched, view.city, view.direction],
+  );
+
+  const cities = useMemo(() => cityOptions(merged), [merged]);
 
   // Looked up in the full dataset, not the filtered view: a ?user= link must
   // still open even when the current search or city filter excludes that row.
@@ -82,8 +101,8 @@ export function UsersScreen() {
     () =>
       view.selectedUserId === null
         ? null
-        : (allUsers.find((user) => user.id === view.selectedUserId) ?? null),
-    [allUsers, view.selectedUserId],
+        : (merged.find((user) => user.id === view.selectedUserId) ?? null),
+    [merged, view.selectedUserId],
   );
 
   // Only once a load has actually succeeded. While loading we do not yet know
@@ -91,15 +110,15 @@ export function UsersScreen() {
   const selectionMissing =
     view.selectedUserId !== null && selectedUser === null && status === 'success';
 
-  const isFirstLoad = status === 'loading' && visibleUsers.length === 0;
-  const isRefreshing = status === 'loading' && visibleUsers.length > 0;
+  const isFirstLoad = status === 'loading' && merged.length === 0;
+  const isRefreshing = status === 'loading' && merged.length > 0;
   const isFiltered = view.query !== '' || view.city !== '';
 
   const summary = summarize({
     isFirstLoad,
     hasError: error !== null,
     count: visibleUsers.length,
-    total: allUsers.length,
+    total: merged.length,
     isFiltered,
   });
 
@@ -134,7 +153,17 @@ export function UsersScreen() {
         />
       </main>
 
-      {selectedUser !== null && <UserDetail user={selectedUser} onClose={view.clearSelection} />}
+      {selectedUser !== null && (
+        <UserDetail
+          user={selectedUser}
+          onClose={view.clearSelection}
+          // The edit records the server value it was made against, which is
+          // what lets the app notice later that the server has moved on.
+          onSaveName={(name) => saveEdit(selectedUser.id, name, selectedUser.serverName)}
+          onRevertName={() => clearEdit(selectedUser.id)}
+          canPersist={isPersistent()}
+        />
+      )}
       {selectionMissing && <UserNotFound onClose={view.clearSelection} />}
     </div>
   );

@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { isAbortError, toRequestError, type RequestError } from './net';
-import { matchesUser } from './search';
 import type { User } from './types';
 import { fetchUsers } from './usersApi';
 
@@ -13,18 +12,11 @@ export type UsersQueryState = {
    * a failed refetch should leave the list the user was reading on screen
    * with the failure reported above it, not blank the page.
    */
-  readonly users: readonly User[];
   /**
-   * Everything the response contained, before the query narrowed it.
-   *
-   * Used only to derive the city filter's options. A real service would
-   * expose facets on their own endpoint rather than making the client
-   * reconstruct them from a page of results; with a fixture that returns the
-   * whole collection, this stands in for that endpoint. Deriving the options
-   * from `users` instead would make them disappear as the user types, which
-   * is the classic version of this bug.
+   * The result set for the current query, exactly as the endpoint returned
+   * it. Matching is NOT applied here - see the note on the hook below.
    */
-  readonly allUsers: readonly User[];
+  readonly users: readonly User[];
   readonly error: RequestError | null;
 };
 
@@ -60,7 +52,6 @@ export function useUsersQuery(query: string): UsersQuery {
   const [state, setState] = useState<UsersQueryState>({
     status: 'loading',
     users: [],
-    allUsers: [],
     error: null,
   });
 
@@ -79,12 +70,7 @@ export function useUsersQuery(query: string): UsersQuery {
         const users = await fetchUsers(controller.signal);
         if (generation !== latestGeneration.current) return;
 
-        setState({
-          status: 'success',
-          users: users.filter((user) => matchesUser(user, query)),
-          allUsers: users,
-          error: null,
-        });
+        setState({ status: 'success', users, error: null });
       } catch (error) {
         if (isAbortError(error) || controller.signal.aborted) return;
         if (generation !== latestGeneration.current) return;
@@ -92,7 +78,6 @@ export function useUsersQuery(query: string): UsersQuery {
         setState((previous) => ({
           status: 'error',
           users: previous.users,
-          allUsers: previous.allUsers,
           error: toRequestError(error),
         }));
       }

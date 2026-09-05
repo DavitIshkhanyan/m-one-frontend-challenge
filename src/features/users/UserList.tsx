@@ -1,4 +1,4 @@
-import type { User } from '../../data/types';
+import type { MergedUser } from '../../edits/merge';
 import { ROW_HEIGHT } from './layout';
 import styles from './UserList.module.css';
 import { UserRow } from './UserRow';
@@ -7,7 +7,7 @@ export function UserList({
   users,
   onSelect,
 }: {
-  readonly users: readonly User[];
+  readonly users: readonly MergedUser[];
   readonly onSelect: (id: number) => void;
 }) {
   return (

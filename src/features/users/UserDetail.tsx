@@ -1,6 +1,15 @@
-import { useEffect, useRef, type ReactNode } from 'react';
-import type { User } from '../../data/types';
+import { useEffect, useRef, useState, type ReactNode, type SyntheticEvent } from 'react';
+import type { MergedUser } from '../../edits/merge';
+import { NameEditor } from './NameEditor';
 import styles from './UserDetail.module.css';
+
+function CloseIcon() {
+  return (
+    <svg viewBox="0 0 20 20" width="18" height="18" fill="none" aria-hidden="true">
+      <path d="m5 5 10 10M15 5 5 15" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
+    </svg>
+  );
+}
 
 function Field({ label, children }: { readonly label: string; readonly children: ReactNode }) {
   return (
@@ -11,23 +20,19 @@ function Field({ label, children }: { readonly label: string; readonly children:
   );
 }
 
-function formatAddress(user: User): string {
+function formatAddress(user: MergedUser): string {
   return [user.suite, user.street, user.city, user.zipcode]
     .filter((part) => part !== '')
     .join(', ');
 }
 
-/**
- * Modal shell.
- *
- * showModal() is called once on mount and close() once on unmount. The
- * unmount call matters: pressing Back changes the URL and unmounts this
- * component, and a dialog removed from the DOM without close() never restores
- * focus - it is simply gone, and focus falls to <body>. Closing it first hands
- * focus back to the row that opened it, which is where a keyboard user
- * expects to be.
- */
-function Modal({ onClose, children }: { readonly onClose: () => void; readonly children: ReactNode }) {
+function Modal({
+  onCancel,
+  children,
+}: {
+  readonly onCancel: (event: SyntheticEvent) => void;
+  readonly children: ReactNode;
+}) {
   const ref = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
@@ -59,15 +64,17 @@ function Modal({ onClose, children }: { readonly onClose: () => void; readonly c
        * counted as a dismissal the selection would be wiped from the URL and
        * the panel would never appear in development. Guarding `close` with a
        * ref does not work either - React dispatches the event after the second
-       * effect has already reset the flag, which is exactly the bug that got
-       * caught here by driving a real browser.
+       * effect has already reset the flag, which is the bug this replaced.
+       *
+       * It is also cancelable, which lets an open editor swallow Escape
+       * instead of losing the user's typing along with the panel.
        */
-      onCancel={onClose}
+      onCancel={onCancel}
       onClick={(event) => {
         // showModal() makes the backdrop part of the dialog element itself,
         // so a click landing on the element rather than its contents is a
         // backdrop click.
-        if (event.target === ref.current) onClose();
+        if (event.target === ref.current) onCancel(event);
       }}
     >
       {children}
@@ -77,46 +84,120 @@ function Modal({ onClose, children }: { readonly onClose: () => void; readonly c
 
 export function UserNotFound({ onClose }: { readonly onClose: () => void }) {
   return (
-    <Modal onClose={onClose}>
+    <Modal onCancel={onClose}>
       <div className={styles.notFound}>
         <h2 className={styles.heading}>We could not find that user</h2>
         <p className={styles.subheading}>
           The link may be out of date, or the user may have been removed.
         </p>
-        <button type="button" className={styles.close} onClick={onClose} aria-label="Close">
-          <CloseIcon />
+        <button type="button" className={styles.secondaryButton} onClick={onClose}>
+          Back to the list
         </button>
       </div>
     </Modal>
   );
 }
 
-function CloseIcon() {
-  return (
-    <svg viewBox="0 0 20 20" width="18" height="18" fill="none" aria-hidden="true">
-      <path d="m5 5 10 10M15 5 5 15" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
-    </svg>
-  );
-}
-
 export function UserDetail({
   user,
   onClose,
+  onSaveName,
+  onRevertName,
+  canPersist,
 }: {
-  readonly user: User;
+  readonly user: MergedUser;
   readonly onClose: () => void;
+  readonly onSaveName: (name: string) => void;
+  readonly onRevertName: () => void;
+  readonly canPersist: boolean;
 }) {
+  const [isEditing, setIsEditing] = useState(false);
   const address = formatAddress(user);
 
+  /**
+   * Escape while editing cancels the edit; Escape otherwise closes the panel.
+   * Without this, one keypress discards both the typing and the panel, and
+   * the user has no idea which of the two they meant to lose.
+   */
+  const handleCancel = (event: SyntheticEvent) => {
+    if (isEditing) {
+      event.preventDefault();
+      setIsEditing(false);
+      return;
+    }
+    onClose();
+  };
+
   return (
-    <Modal onClose={onClose}>
+    <Modal onCancel={handleCancel}>
       <div className={styles.inner}>
         <div className={styles.header}>
-          <div>
-            <h2 className={styles.heading}>{user.name}</h2>
-            {user.username !== '' && <p className={styles.subheading}>@{user.username}</p>}
+          <div className={styles.headerMain}>
+            {isEditing ? (
+              <>
+                <NameEditor
+                  initialName={user.name}
+                  onSave={(name) => {
+                    onSaveName(name);
+                    setIsEditing(false);
+                  }}
+                  onCancel={() => setIsEditing(false)}
+                />
+                {!canPersist && (
+                  <p className={styles.warning}>
+                    This browser is blocking local storage, so changes will last until you
+                    reload.
+                  </p>
+                )}
+              </>
+            ) : (
+              <>
+                <h2 className={styles.heading}>{user.name}</h2>
+                {user.username !== '' && <p className={styles.subheading}>@{user.username}</p>}
+
+                <div className={styles.nameActions}>
+                  <button
+                    type="button"
+                    className={styles.textButton}
+                    onClick={() => setIsEditing(true)}
+                  >
+                    Edit name
+                  </button>
+                  {user.isEdited && (
+                    <button type="button" className={styles.textButton} onClick={onRevertName}>
+                      Revert to server value
+                    </button>
+                  )}
+                </div>
+
+                {user.isEdited && !user.serverChangedSinceEdit && (
+                  <p className={styles.note}>
+                    Edited on this device. The server still has &ldquo;{user.serverName}&rdquo;.
+                  </p>
+                )}
+
+                {/*
+                  The server changed underneath a local edit. The local value
+                  still wins - that is the policy - but saying nothing would
+                  mask a real change and leave the user acting on stale
+                  information they never agreed to.
+                */}
+                {user.serverChangedSinceEdit && (
+                  <p className={styles.conflict}>
+                    Your edit is being shown. The server has since changed this name to
+                    &ldquo;{user.serverName}&rdquo;.
+                  </p>
+                )}
+              </>
+            )}
           </div>
-          <button type="button" className={styles.close} onClick={onClose} aria-label="Close details">
+
+          <button
+            type="button"
+            className={styles.close}
+            onClick={onClose}
+            aria-label="Close details"
+          >
             <CloseIcon />
           </button>
         </div>

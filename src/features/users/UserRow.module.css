@@ -67,10 +67,31 @@
   white-space: nowrap;
 }
 
-.name {
+.nameLine {
   grid-area: name;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.name {
   font-weight: 600;
   line-height: var(--leading-tight);
+}
+
+/*
+ * aria-hidden on the badge: the row's accessible name already says "edited",
+ * and letting the pill be read as well makes a screen reader say it twice.
+ */
+.badge {
+  flex-shrink: 0;
+  padding: 1px var(--space-2);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--accent);
+  background-color: var(--accent-soft);
+  border-radius: var(--radius-full);
 }
 
 .email {
