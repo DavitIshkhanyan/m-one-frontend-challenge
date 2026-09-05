@@ -14,8 +14,17 @@ export type UsersQueryState = {
    * with the failure reported above it, not blank the page.
    */
   readonly users: readonly User[];
-  /** How many users the server returned, before the query narrowed them. */
-  readonly total: number;
+  /**
+   * Everything the response contained, before the query narrowed it.
+   *
+   * Used only to derive the city filter's options. A real service would
+   * expose facets on their own endpoint rather than making the client
+   * reconstruct them from a page of results; with a fixture that returns the
+   * whole collection, this stands in for that endpoint. Deriving the options
+   * from `users` instead would make them disappear as the user types, which
+   * is the classic version of this bug.
+   */
+  readonly allUsers: readonly User[];
   readonly error: RequestError | null;
 };
 
@@ -51,7 +60,7 @@ export function useUsersQuery(query: string): UsersQuery {
   const [state, setState] = useState<UsersQueryState>({
     status: 'loading',
     users: [],
-    total: 0,
+    allUsers: [],
     error: null,
   });
 
@@ -73,7 +82,7 @@ export function useUsersQuery(query: string): UsersQuery {
         setState({
           status: 'success',
           users: users.filter((user) => matchesUser(user, query)),
-          total: users.length,
+          allUsers: users,
           error: null,
         });
       } catch (error) {
@@ -83,7 +92,7 @@ export function useUsersQuery(query: string): UsersQuery {
         setState((previous) => ({
           status: 'error',
           users: previous.users,
-          total: previous.total,
+          allUsers: previous.allUsers,
           error: toRequestError(error),
         }));
       }

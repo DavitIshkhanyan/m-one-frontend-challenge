@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import type { User } from '../../data/types';
 import { useUsersQuery, type UsersQueryStatus } from '../../data/useUsersQuery';
 import { Toolbar } from './Toolbar';
-import { sortUsersByName } from './derive';
+import { cityOptions, filterByCity, sortUsersByName } from './derive';
 import { UserList } from './UserList';
 import styles from './UsersScreen.module.css';
 import { EmptyState } from './states/EmptyState';
@@ -62,22 +62,26 @@ function Body({
 
 export function UsersScreen() {
   const view = useViewState();
-  const { status, users, total, error, retry } = useUsersQuery(view.query);
+  const { status, users, allUsers, error, retry } = useUsersQuery(view.query);
 
+  // Filter first, then sort: sorting the smaller set is cheaper, and the
+  // result is identical either way.
   const visibleUsers = useMemo(
-    () => sortUsersByName(users, view.direction),
-    [users, view.direction],
+    () => sortUsersByName(filterByCity(users, view.city), view.direction),
+    [users, view.city, view.direction],
   );
+
+  const cities = useMemo(() => cityOptions(allUsers), [allUsers]);
 
   const isFirstLoad = status === 'loading' && visibleUsers.length === 0;
   const isRefreshing = status === 'loading' && visibleUsers.length > 0;
-  const isFiltered = view.query !== '';
+  const isFiltered = view.query !== '' || view.city !== '';
 
   const summary = summarize({
     isFirstLoad,
     hasError: error !== null,
     count: visibleUsers.length,
-    total,
+    total: allUsers.length,
     isFiltered,
   });
 
@@ -90,6 +94,9 @@ export function UsersScreen() {
       <Toolbar
         query={view.query}
         onQueryChange={view.setQuery}
+        city={view.city}
+        cities={cities}
+        onCityChange={view.setCity}
         direction={view.direction}
         onDirectionChange={view.setDirection}
         summary={summary}

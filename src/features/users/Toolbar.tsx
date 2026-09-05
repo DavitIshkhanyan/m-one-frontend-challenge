@@ -21,16 +21,27 @@ function Chevron() {
 export function Toolbar({
   query,
   onQueryChange,
+  city,
+  cities,
+  onCityChange,
   direction,
   onDirectionChange,
   summary,
 }: {
   readonly query: string;
   readonly onQueryChange: (query: string) => void;
+  readonly city: string;
+  readonly cities: readonly string[];
+  readonly onCityChange: (city: string) => void;
   readonly direction: SortDirection;
   readonly onDirectionChange: (direction: SortDirection) => void;
   readonly summary: string;
 }) {
+  // A city arriving from the URL may no longer exist in the data. Keep it as
+  // an option so the control shows what is actually being filtered on,
+  // instead of rendering blank and looking broken.
+  const options = city === '' || cities.includes(city) ? cities : [city, ...cities];
+
   return (
     <div className={styles.toolbar}>
       <div className={styles.controls}>
@@ -66,6 +77,26 @@ export function Toolbar({
               </svg>
             </button>
           )}
+        </div>
+
+        <div className={styles.selectField}>
+          <label className="visually-hidden" htmlFor="user-city">
+            Filter users by city
+          </label>
+          <select
+            id="user-city"
+            className={styles.select}
+            value={city}
+            onChange={(event) => onCityChange(event.target.value)}
+          >
+            <option value="">All cities</option>
+            {options.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
+          <Chevron />
         </div>
 
         {/*

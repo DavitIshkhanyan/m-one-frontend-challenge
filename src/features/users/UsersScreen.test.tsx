@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { jsonResponse, rawUser } from '../../test/fixtures';
@@ -33,8 +33,10 @@ describe('UsersScreen', () => {
     expect(screen.getByRole('heading', { name: 'Users', level: 1 })).toBeInTheDocument();
     await waitFor(() => expect(screen.getByText('Leanne Graham')).toBeInTheDocument());
 
-    expect(screen.getByText('Wisokyburgh')).toBeInTheDocument();
-    expect(screen.getAllByRole('listitem')).toHaveLength(2);
+    // Scoped to the list: the city also appears as an option in the filter.
+    const list = screen.getByRole('list');
+    expect(within(list).getByText('Wisokyburgh')).toBeInTheDocument();
+    expect(within(list).getAllByRole('listitem')).toHaveLength(2);
     expect(screen.getByText('2 users')).toBeInTheDocument();
   });
 
@@ -110,6 +112,53 @@ describe('UsersScreen', () => {
 
     await screen.findByText('Leanne Graham');
     expect(screen.getAllByRole('listitem')[0]?.textContent ?? '').toContain('Leanne Graham');
+  });
+
+  it('filters by city, combining with search rather than replacing it', async () => {
+    stubUsers(LEANNE, ERVIN);
+    const user = userEvent.setup();
+    render(<UsersScreen />);
+    await screen.findByText('Leanne Graham');
+
+    await user.selectOptions(
+      screen.getByRole('combobox', { name: /filter users by city/i }),
+      'Wisokyburgh',
+    );
+
+    await waitFor(() => expect(screen.queryByText('Leanne Graham')).not.toBeInTheDocument());
+    expect(screen.getByText('Ervin Howell')).toBeInTheDocument();
+    expect(window.location.search).toBe('?city=Wisokyburgh');
+
+    // City AND search, not city OR search: Ervin is in Wisokyburgh but is not
+    // called Leanne, so the combination matches nobody.
+    await user.type(screen.getByRole('searchbox', { name: /search users/i }), 'leanne');
+    expect(await screen.findByText(/no users match your filters/i)).toBeInTheDocument();
+  });
+
+  it('offers every city even while the list is narrowed by search', async () => {
+    stubUsers(LEANNE, ERVIN);
+    const user = userEvent.setup();
+    render(<UsersScreen />);
+    await screen.findByText('Leanne Graham');
+
+    await user.type(screen.getByRole('searchbox', { name: /search users/i }), 'leanne');
+    await waitFor(() => expect(screen.queryByText('Ervin Howell')).not.toBeInTheDocument());
+
+    // Options come from the whole dataset, so filtering does not erase the
+    // very options the user needs to change their mind.
+    const cityFilter = screen.getByRole('combobox', { name: /filter users by city/i });
+    expect(within(cityFilter).getByRole('option', { name: 'Wisokyburgh' })).toBeInTheDocument();
+    expect(within(cityFilter).getByRole('option', { name: 'Gwenborough' })).toBeInTheDocument();
+  });
+
+  it('keeps showing a city from the URL that is absent from the data', async () => {
+    window.history.replaceState(null, '', '/?city=Atlantis');
+    stubUsers(LEANNE, ERVIN);
+    render(<UsersScreen />);
+
+    const cityFilter = await screen.findByRole('combobox', { name: /filter users by city/i });
+    expect(cityFilter).toHaveValue('Atlantis');
+    expect(await screen.findByText(/no users match your filters/i)).toBeInTheDocument();
   });
 
   it('applies a query supplied in the URL on first load', async () => {

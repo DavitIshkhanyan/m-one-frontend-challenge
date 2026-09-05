@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { User } from '../../data/types';
-import { sortUsersByName } from './derive';
+import { cityOptions, filterByCity, sortUsersByName } from './derive';
 
 function user(id: number, name: string): User {
   return {
@@ -53,5 +53,36 @@ describe('sortUsersByName', () => {
     const users = [user(2, 'Bret'), user(1, 'Antonette')];
     sortUsersByName(users, 'asc');
     expect(names(users)).toEqual(['Bret', 'Antonette']);
+  });
+});
+
+describe('cityOptions', () => {
+  it('lists each city once, collated', () => {
+    const users = [
+      { ...user(1, 'A'), city: 'Wisokyburgh' },
+      { ...user(2, 'B'), city: 'Gwenborough' },
+      { ...user(3, 'C'), city: 'Wisokyburgh' },
+    ];
+    expect(cityOptions(users)).toEqual(['Gwenborough', 'Wisokyburgh']);
+  });
+
+  it('omits users with no city rather than offering a blank option', () => {
+    const users = [{ ...user(1, 'A'), city: '' }, { ...user(2, 'B'), city: 'Gwenborough' }];
+    expect(cityOptions(users)).toEqual(['Gwenborough']);
+  });
+});
+
+describe('filterByCity', () => {
+  it('returns everything when no city is selected', () => {
+    const users = [{ ...user(1, 'A'), city: 'Gwenborough' }];
+    expect(filterByCity(users, '')).toHaveLength(1);
+  });
+
+  it('keeps only the selected city', () => {
+    const users = [
+      { ...user(1, 'A'), city: 'Gwenborough' },
+      { ...user(2, 'B'), city: 'Wisokyburgh' },
+    ];
+    expect(filterByCity(users, 'Wisokyburgh').map((u) => u.id)).toEqual([2]);
   });
 });
