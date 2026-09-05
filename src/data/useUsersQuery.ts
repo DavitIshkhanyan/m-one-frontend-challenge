@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { isAbortError, toRequestError, type RequestError } from './net';
+import { NO_SIMULATION, type SimulationConfig } from './simulation';
 import type { User } from './types';
 import { fetchUsers } from './usersApi';
 
@@ -48,7 +49,10 @@ export type UsersQuery = UsersQueryState & {
  * building the race away rather than guarding it would answer a different
  * question than the one being asked.
  */
-export function useUsersQuery(query: string): UsersQuery {
+export function useUsersQuery(
+  query: string,
+  simulation: SimulationConfig = NO_SIMULATION,
+): UsersQuery {
   const [state, setState] = useState<UsersQueryState>({
     status: 'loading',
     users: [],
@@ -67,7 +71,7 @@ export function useUsersQuery(query: string): UsersQuery {
 
     void (async () => {
       try {
-        const users = await fetchUsers(controller.signal);
+        const users = await fetchUsers(controller.signal, simulation);
         if (generation !== latestGeneration.current) return;
 
         setState({ status: 'success', users, error: null });
@@ -84,7 +88,7 @@ export function useUsersQuery(query: string): UsersQuery {
     })();
 
     return () => controller.abort();
-  }, [query, retryToken]);
+  }, [query, retryToken, simulation]);
 
   const retry = useCallback(() => setRetryToken((token) => token + 1), []);
 

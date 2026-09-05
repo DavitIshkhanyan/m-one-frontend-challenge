@@ -4,6 +4,7 @@ import { useUsersQuery, type UsersQueryStatus } from '../../data/useUsersQuery';
 import { clearEdit, saveEdit, useEdits } from '../../edits/editsStore';
 import { applyEdits, type MergedUser } from '../../edits/merge';
 import { isPersistent } from '../../lib/storage';
+import { SimulationPanel } from './SimulationPanel';
 import { Toolbar } from './Toolbar';
 import { UserDetail, UserNotFound } from './UserDetail';
 import { UserList } from './UserList';
@@ -13,6 +14,7 @@ import { EmptyState } from './states/EmptyState';
 import { ErrorState } from './states/ErrorState';
 import { NoResults } from './states/NoResults';
 import { SkeletonList } from './states/SkeletonList';
+import { useSimulation } from './simulation';
 import { useViewState } from './viewState';
 
 function summarize({
@@ -69,7 +71,8 @@ function Body({
 export function UsersScreen() {
   const view = useViewState();
   const edits = useEdits();
-  const { status, users, error, retry } = useUsersQuery(view.query);
+  const simulation = useSimulation();
+  const { status, users, error, retry } = useUsersQuery(view.query, simulation.config);
 
   /*
    * The derived pipeline, in the order it has to happen.
@@ -126,6 +129,11 @@ export function UsersScreen() {
     <div className={styles.screen}>
       <header className={styles.header}>
         <h1 className={styles.title}>Users</h1>
+        <SimulationPanel
+          config={simulation.config}
+          onChange={simulation.setConfig}
+          isActive={simulation.isActive}
+        />
       </header>
 
       <Toolbar
