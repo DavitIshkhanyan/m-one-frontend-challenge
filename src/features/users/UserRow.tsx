@@ -11,15 +11,19 @@ function initials(name: string): string {
 export function UserRow({
   user,
   onSelect,
+  position,
+  setSize,
 }: {
   readonly user: MergedUser;
   readonly onSelect: (id: number) => void;
+  readonly position: number;
+  readonly setSize: number;
 }) {
   const hasCity = user.city !== '';
   const hasCompany = user.company !== '';
 
   return (
-    <li>
+    <li aria-setsize={setSize} aria-posinset={position}>
       {/*
         A real <button>, not a div with a click handler: it is reachable by
         Tab, activates on both Enter and Space, and announces itself as

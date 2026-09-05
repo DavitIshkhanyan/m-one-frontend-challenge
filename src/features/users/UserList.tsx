@@ -1,3 +1,4 @@
+import { useVirtualRows } from '../../lib/useVirtualRows';
 import type { MergedUser } from '../../edits/merge';
 import { ROW_HEIGHT } from './layout';
 import styles from './UserList.module.css';
@@ -10,11 +11,36 @@ export function UserList({
   readonly users: readonly MergedUser[];
   readonly onSelect: (id: number) => void;
 }) {
+  const { containerRef, startIndex, endIndex, totalHeight, offsetY } = useVirtualRows(
+    users.length,
+    ROW_HEIGHT,
+  );
+
+  const visible = users.slice(startIndex, endIndex);
+
   return (
-    <ul className={styles.list} style={{ '--row-height': `${ROW_HEIGHT}px` }}>
-      {users.map((user) => (
-        <UserRow key={user.id} user={user} onSelect={onSelect} />
-      ))}
-    </ul>
+    <div
+      ref={containerRef}
+      className={styles.viewport}
+      style={{ '--row-height': `${ROW_HEIGHT}px`, '--total-height': `${totalHeight}px` }}
+    >
+      {/* Holds the full scroll height so the scrollbar reflects the real list. */}
+      <div className={styles.canvas} style={{ height: `${totalHeight}px` }}>
+        <ul className={styles.list} style={{ transform: `translateY(${offsetY}px)` }}>
+          {visible.map((user, index) => (
+            <UserRow
+              key={user.id}
+              user={user}
+              onSelect={onSelect}
+              // Windowing means the DOM holds a slice, not the list. Without
+              // these a screen reader announces "item 3 of 14" inside a list
+              // of ten thousand.
+              position={startIndex + index + 1}
+              setSize={users.length}
+            />
+          ))}
+        </ul>
+      </div>
+    </div>
   );
 }

@@ -1,10 +1,27 @@
-.list {
+/*
+ * The scroll container is sized to its content up to a ceiling, so the ten
+ * real users produce no inner scrollbar at all and the page scrolls normally.
+ * Only once the list is genuinely long does it become its own scroll region.
+ */
+.viewport {
+  max-height: min(70dvh, var(--total-height));
+  overflow-y: auto;
+  overscroll-behavior: contain;
   background-color: var(--bg-raised);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  overflow: hidden;
 }
 
-.list > :last-child {
+.canvas {
+  position: relative;
+}
+
+.list {
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+}
+
+.list > :last-child > * {
   border-bottom: none;
 }

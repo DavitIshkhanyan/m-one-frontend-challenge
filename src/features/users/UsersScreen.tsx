@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useDeferredValue, useMemo } from 'react';
 import { matchesUser } from '../../data/search';
 import { useUsersQuery, type UsersQueryStatus } from '../../data/useUsersQuery';
 import { clearEdit, saveEdit, useEdits } from '../../edits/editsStore';
@@ -85,9 +85,19 @@ export function UsersScreen() {
    */
   const merged = useMemo(() => applyEdits(users, edits), [users, edits]);
 
+  /*
+   * The input stays bound to view.query so typing is never laggy; the list
+   * re-filters against a deferred copy at lower priority. At ten rows this
+   * changes nothing. At ten thousand it is the difference between a
+   * responsive field and one that drops characters, and it is cheaper and
+   * more accurate than a debounce, which would make every user wait a fixed
+   * delay whether or not the work was slow.
+   */
+  const deferredQuery = useDeferredValue(view.query);
+
   const matched = useMemo(
-    () => merged.filter((user) => matchesUser(user, view.query)),
-    [merged, view.query],
+    () => merged.filter((user) => matchesUser(user, deferredQuery)),
+    [merged, deferredQuery],
   );
 
   // Filter before sort: same result, smaller array to sort.
