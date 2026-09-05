@@ -1,4 +1,5 @@
 import styles from './Toolbar.module.css';
+import type { SortDirection } from './viewState';
 
 function SearchIcon() {
   return (
@@ -9,13 +10,25 @@ function SearchIcon() {
   );
 }
 
+function Chevron() {
+  return (
+    <svg className={styles.chevron} viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <path d="m4 6 4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 export function Toolbar({
   query,
   onQueryChange,
+  direction,
+  onDirectionChange,
   summary,
 }: {
   readonly query: string;
   readonly onQueryChange: (query: string) => void;
+  readonly direction: SortDirection;
+  readonly onDirectionChange: (direction: SortDirection) => void;
   readonly summary: string;
 }) {
   return (
@@ -54,12 +67,33 @@ export function Toolbar({
             </button>
           )}
         </div>
+
+        {/*
+          Sort lives in the toolbar rather than on a clickable column header.
+          Header sorting needs table semantics this list deliberately does not
+          use, and it disappears entirely at narrow widths where there are no
+          headers to click. A labelled control is identical everywhere.
+        */}
+        <div className={styles.selectField}>
+          <label className="visually-hidden" htmlFor="user-sort">
+            Sort users by name
+          </label>
+          <select
+            id="user-sort"
+            className={styles.select}
+            value={direction}
+            onChange={(event) => onDirectionChange(event.target.value === 'desc' ? 'desc' : 'asc')}
+          >
+            <option value="asc">Name A to Z</option>
+            <option value="desc">Name Z to A</option>
+          </select>
+          <Chevron />
+        </div>
       </div>
 
       {/*
         Announced politely rather than assertively: a filter result is worth
-        knowing but must not interrupt what the screen reader is already
-        saying about the character just typed.
+        knowing but must not interrupt the screen reader mid-character.
       */}
       <p className={styles.count} role="status" aria-live="polite">
         {summary}

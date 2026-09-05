@@ -1,6 +1,8 @@
+import { useMemo } from 'react';
 import type { User } from '../../data/types';
 import { useUsersQuery, type UsersQueryStatus } from '../../data/useUsersQuery';
 import { Toolbar } from './Toolbar';
+import { sortUsersByName } from './derive';
 import { UserList } from './UserList';
 import styles from './UsersScreen.module.css';
 import { EmptyState } from './states/EmptyState';
@@ -62,14 +64,19 @@ export function UsersScreen() {
   const view = useViewState();
   const { status, users, total, error, retry } = useUsersQuery(view.query);
 
-  const isFirstLoad = status === 'loading' && users.length === 0;
-  const isRefreshing = status === 'loading' && users.length > 0;
+  const visibleUsers = useMemo(
+    () => sortUsersByName(users, view.direction),
+    [users, view.direction],
+  );
+
+  const isFirstLoad = status === 'loading' && visibleUsers.length === 0;
+  const isRefreshing = status === 'loading' && visibleUsers.length > 0;
   const isFiltered = view.query !== '';
 
   const summary = summarize({
     isFirstLoad,
     hasError: error !== null,
-    count: users.length,
+    count: visibleUsers.length,
     total,
     isFiltered,
   });
@@ -80,7 +87,13 @@ export function UsersScreen() {
         <h1 className={styles.title}>Users</h1>
       </header>
 
-      <Toolbar query={view.query} onQueryChange={view.setQuery} summary={summary} />
+      <Toolbar
+        query={view.query}
+        onQueryChange={view.setQuery}
+        direction={view.direction}
+        onDirectionChange={view.setDirection}
+        summary={summary}
+      />
 
       <main className={styles.main} aria-busy={status === 'loading'}>
         {error !== null && <ErrorState error={error} onRetry={retry} />}
@@ -88,7 +101,7 @@ export function UsersScreen() {
 
         <Body
           status={status}
-          users={users}
+          users={visibleUsers}
           hasError={error !== null}
           isFiltered={isFiltered}
           onClearFilters={view.clearFilters}

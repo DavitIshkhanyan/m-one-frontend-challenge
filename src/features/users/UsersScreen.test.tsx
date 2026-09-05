@@ -87,6 +87,31 @@ describe('UsersScreen', () => {
     expect(await screen.findByText('Leanne Graham')).toBeInTheDocument();
   });
 
+  it('reorders the list when sort direction changes, and records it in the URL', async () => {
+    stubUsers(LEANNE, ERVIN);
+    const user = userEvent.setup();
+    render(<UsersScreen />);
+    await screen.findByText('Leanne Graham');
+
+    const firstRow = () => (screen.getAllByRole('listitem')[0]?.textContent ?? '');
+
+    expect(firstRow()).toContain('Ervin Howell');
+
+    await user.selectOptions(screen.getByRole('combobox', { name: /sort users/i }), 'desc');
+
+    await waitFor(() => expect(firstRow()).toContain('Leanne Graham'));
+    expect(window.location.search).toBe('?dir=desc');
+  });
+
+  it('applies sort direction supplied in the URL on first load', async () => {
+    window.history.replaceState(null, '', '/?dir=desc');
+    stubUsers(LEANNE, ERVIN);
+    render(<UsersScreen />);
+
+    await screen.findByText('Leanne Graham');
+    expect(screen.getAllByRole('listitem')[0]?.textContent ?? '').toContain('Leanne Graham');
+  });
+
   it('applies a query supplied in the URL on first load', async () => {
     window.history.replaceState(null, '', '/?q=ervin');
     stubUsers(LEANNE, ERVIN);
