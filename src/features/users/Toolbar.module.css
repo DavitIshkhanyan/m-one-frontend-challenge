@@ -3,15 +3,28 @@
   gap: var(--space-3);
 }
 
+/*
+ * Phone: search across the top, the two selects sharing the row beneath it.
+ * Stacking all three costs about 300px before a single row of data appears,
+ * which on a short phone screen is most of the viewport spent on controls.
+ */
 .controls {
   display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: var(--space-3);
+}
+
+.searchField {
+  grid-column: 1 / -1;
 }
 
 @media (min-width: 40rem) {
   .controls {
-    grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
+  }
+
+  .searchField {
+    grid-column: auto;
   }
 }
 
@@ -20,6 +33,7 @@
   display: flex;
   align-items: center;
 }
+
 
 .searchIcon {
   position: absolute;
