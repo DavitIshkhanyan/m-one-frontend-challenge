@@ -1,3 +1,5 @@
+import { UsersScreen } from './features/users/UsersScreen';
+
 export function App() {
-  return <h1>Users</h1>;
+  return <UsersScreen />;
 }

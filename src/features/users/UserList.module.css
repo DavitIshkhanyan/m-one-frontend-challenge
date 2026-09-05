@@ -1,0 +1,10 @@
+.list {
+  background-color: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.list > :last-child {
+  border-bottom: none;
+}

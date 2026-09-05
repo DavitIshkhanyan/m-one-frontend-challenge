@@ -1,0 +1,74 @@
+.screen {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: var(--space-5);
+  width: 100%;
+  max-width: var(--content-max);
+  margin-inline: auto;
+  padding: var(--space-5) var(--space-4) var(--space-7);
+}
+
+@media (min-width: 48rem) {
+  .screen {
+    padding-inline: var(--space-5);
+  }
+}
+
+.header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.title {
+  font-size: var(--text-xl);
+  font-weight: 700;
+  line-height: var(--leading-tight);
+  letter-spacing: -0.01em;
+}
+
+.main {
+  display: grid;
+  gap: var(--space-4);
+  align-content: start;
+}
+
+/* A refetch over existing data gets a thin indeterminate bar rather than a
+   skeleton, because replacing a list the user is reading with placeholders
+   is worse than leaving it up for another moment. */
+.progress {
+  position: relative;
+  height: 2px;
+  overflow: hidden;
+  background-color: var(--border);
+  border-radius: var(--radius-full);
+}
+
+.progress::after {
+  content: '';
+  position: absolute;
+  inset-block: 0;
+  inline-size: 35%;
+  background-color: var(--accent);
+  border-radius: inherit;
+  animation: indeterminate 1.1s var(--ease) infinite;
+}
+
+@keyframes indeterminate {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(340%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .progress::after {
+    inline-size: 100%;
+    animation: none;
+    opacity: 0.5;
+  }
+}
