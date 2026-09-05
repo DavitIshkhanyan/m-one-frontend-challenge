@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import type { User } from '../../data/types';
 import { useUsersQuery, type UsersQueryStatus } from '../../data/useUsersQuery';
 import { Toolbar } from './Toolbar';
+import { UserDetail, UserNotFound } from './UserDetail';
 import { cityOptions, filterByCity, sortUsersByName } from './derive';
 import { UserList } from './UserList';
 import styles from './UsersScreen.module.css';
@@ -40,12 +41,14 @@ function Body({
   hasError,
   isFiltered,
   onClearFilters,
+  onSelect,
 }: {
   readonly status: UsersQueryStatus;
   readonly users: readonly User[];
   readonly hasError: boolean;
   readonly isFiltered: boolean;
   readonly onClearFilters: () => void;
+  readonly onSelect: (id: number) => void;
 }) {
   // First load: nothing to preserve, so show the shape of what is coming.
   if (status === 'loading' && users.length === 0) return <SkeletonList />;
@@ -57,7 +60,7 @@ function Body({
     return isFiltered ? <NoResults onClearFilters={onClearFilters} /> : <EmptyState />;
   }
 
-  return <UserList users={users} />;
+  return <UserList users={users} onSelect={onSelect} />;
 }
 
 export function UsersScreen() {
@@ -72,6 +75,21 @@ export function UsersScreen() {
   );
 
   const cities = useMemo(() => cityOptions(allUsers), [allUsers]);
+
+  // Looked up in the full dataset, not the filtered view: a ?user= link must
+  // still open even when the current search or city filter excludes that row.
+  const selectedUser = useMemo(
+    () =>
+      view.selectedUserId === null
+        ? null
+        : (allUsers.find((user) => user.id === view.selectedUserId) ?? null),
+    [allUsers, view.selectedUserId],
+  );
+
+  // Only once a load has actually succeeded. While loading we do not yet know
+  // whether the id is bad, and claiming "not found" would be a guess.
+  const selectionMissing =
+    view.selectedUserId !== null && selectedUser === null && status === 'success';
 
   const isFirstLoad = status === 'loading' && visibleUsers.length === 0;
   const isRefreshing = status === 'loading' && visibleUsers.length > 0;
@@ -112,8 +130,12 @@ export function UsersScreen() {
           hasError={error !== null}
           isFiltered={isFiltered}
           onClearFilters={view.clearFilters}
+          onSelect={view.selectUser}
         />
       </main>
+
+      {selectedUser !== null && <UserDetail user={selectedUser} onClose={view.clearSelection} />}
+      {selectionMissing && <UserNotFound onClose={view.clearSelection} />}
     </div>
   );
 }
