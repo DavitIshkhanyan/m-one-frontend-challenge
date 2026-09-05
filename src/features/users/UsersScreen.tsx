@@ -1,6 +1,7 @@
 import type { User } from '../../data/types';
 import { useUsersQuery, type UsersQueryStatus } from '../../data/useUsersQuery';
 import { UserList } from './UserList';
+import { useViewState } from './viewState';
 import styles from './UsersScreen.module.css';
 import { EmptyState } from './states/EmptyState';
 import { ErrorState } from './states/ErrorState';
@@ -26,7 +27,8 @@ function Body({
 }
 
 export function UsersScreen() {
-  const { status, users, error, retry } = useUsersQuery('');
+  const view = useViewState();
+  const { status, users, error, retry } = useUsersQuery(view.query);
 
   const isFirstLoad = status === 'loading' && users.length === 0;
   const isRefreshing = status === 'loading' && users.length > 0;
