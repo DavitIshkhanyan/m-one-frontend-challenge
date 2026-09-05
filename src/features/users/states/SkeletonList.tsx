@@ -1,4 +1,4 @@
-import { ROW_HEIGHT } from '../layout';
+import { useRowHeight } from '../layout';
 import styles from './states.module.css';
 
 const PLACEHOLDER_ROWS = 6;
@@ -10,10 +10,12 @@ const LINE_WIDTHS = ['58%', '38%'] as const;
  * the user something is happening without telling them what is coming.
  */
 export function SkeletonList() {
+  const rowHeight = useRowHeight();
+
   return (
     <div
       className={styles.skeletonList}
-      style={{ '--row-height': `${ROW_HEIGHT}px` }}
+      style={{ '--row-height': `${rowHeight}px` }}
       aria-hidden="true"
     >
       {Array.from({ length: PLACEHOLDER_ROWS }, (_, index) => (

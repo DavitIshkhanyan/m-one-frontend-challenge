@@ -1,6 +1,6 @@
 import { useVirtualRows } from '../../lib/useVirtualRows';
 import type { MergedUser } from '../../edits/merge';
-import { ROW_HEIGHT } from './layout';
+import { useRowHeight } from './layout';
 import styles from './UserList.module.css';
 import { UserRow } from './UserRow';
 
@@ -11,9 +11,10 @@ export function UserList({
   readonly users: readonly MergedUser[];
   readonly onSelect: (id: number) => void;
 }) {
+  const rowHeight = useRowHeight();
   const { containerRef, startIndex, endIndex, totalHeight, offsetY } = useVirtualRows(
     users.length,
-    ROW_HEIGHT,
+    rowHeight,
   );
 
   const visible = users.slice(startIndex, endIndex);
@@ -22,7 +23,7 @@ export function UserList({
     <div
       ref={containerRef}
       className={styles.viewport}
-      style={{ '--row-height': `${ROW_HEIGHT}px`, '--total-height': `${totalHeight}px` }}
+      style={{ '--row-height': `${rowHeight}px`, '--total-height': `${totalHeight}px` }}
     >
       {/* Holds the full scroll height so the scrollbar reflects the real list. */}
       <div className={styles.canvas} style={{ height: `${totalHeight}px` }}>
