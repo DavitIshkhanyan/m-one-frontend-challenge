@@ -48,7 +48,7 @@
   width: 100%;
   min-height: 44px;
   padding-block: var(--space-2);
-  padding-inline: calc(var(--space-3) * 2 + 1.125rem) var(--space-6);
+  padding-inline: calc(var(--space-3) * 2 + 1.125rem) 2.75rem;
   color: var(--fg);
   background-color: var(--bg-raised);
   border: 1px solid var(--border-strong);
@@ -73,11 +73,12 @@
 
 .clear {
   position: absolute;
-  inset-inline-end: var(--space-1);
+  inset-inline-end: 0;
   display: grid;
   place-items: center;
-  width: 36px;
-  height: 36px;
+  /* 44px so it is a real touch target, even though the glyph is small. */
+  width: 44px;
+  height: 44px;
   color: var(--fg-muted);
   background: none;
   border: none;

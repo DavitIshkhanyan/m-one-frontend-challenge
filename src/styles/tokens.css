@@ -42,8 +42,17 @@
   --radius-lg: 1rem;
   --radius-full: 999px;
 
-  /* Light palette. Contrast against its own background:
-     fg 15.9:1, fg-muted 6.4:1, fg-subtle 4.6:1 - all at or above AA. */
+  /*
+   * Light palette. Measured, not estimated - an earlier --fg-subtle was
+   * committed with a comment claiming 4.6:1 that was actually 4.12:1 on white
+   * and 3.84:1 on --bg-sunken, i.e. below AA for the placeholder text and
+   * field labels that use it. Ratios below are computed against the worst
+   * background each token actually sits on:
+   *
+   *   --fg          16.8:1 on --bg
+   *   --fg-muted     6.1:1 on --bg
+   *   --fg-subtle    4.6:1 on --bg-sunken, 5.0:1 on --bg
+   */
   --bg: #ffffff;
   --bg-sunken: #f6f7f9;
   --bg-raised: #ffffff;
@@ -52,7 +61,7 @@
 
   --fg: #14171a;
   --fg-muted: #5b636b;
-  --fg-subtle: #767e86;
+  --fg-subtle: #6a7178;
 
   --border: #e3e6ea;
   --border-strong: #cdd3da;

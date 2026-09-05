@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import styles from './Toolbar.module.css';
 import type { SortDirection } from './viewState';
 
@@ -41,6 +42,32 @@ export function Toolbar({
   // an option so the control shows what is actually being filtered on,
   // instead of rendering blank and looking broken.
   const options = city === '' || cities.includes(city) ? cities : [city, ...cities];
+  const searchRef = useRef<HTMLInputElement>(null);
+
+  /*
+   * "/" jumps to search, the convention this kind of screen has had since
+   * before it was a convention. Ignored while the user is typing somewhere
+   * else, or while the detail dialog is open - stealing focus out of a modal
+   * would break the trap the platform is maintaining.
+   */
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== '/' || event.metaKey || event.ctrlKey || event.altKey) return;
+
+      const target = event.target;
+      if (target instanceof HTMLElement) {
+        if (target.isContentEditable) return;
+        if (['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)) return;
+        if (target.closest('dialog') !== null) return;
+      }
+
+      event.preventDefault();
+      searchRef.current?.focus();
+    };
+
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, []);
 
   return (
     <div className={styles.toolbar}>
@@ -48,10 +75,11 @@ export function Toolbar({
         <div className={styles.searchField}>
           <SearchIcon />
           <label className="visually-hidden" htmlFor="user-search">
-            Search users by name or email
+            Search users by name or email. Press slash to jump here.
           </label>
           <input
             id="user-search"
+            ref={searchRef}
             className={styles.input}
             type="search"
             value={query}

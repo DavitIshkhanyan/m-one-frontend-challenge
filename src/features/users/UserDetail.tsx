@@ -27,9 +27,11 @@ function formatAddress(user: MergedUser): string {
 }
 
 function Modal({
+  label,
   onCancel,
   children,
 }: {
+  readonly label: string;
   readonly onCancel: (event: SyntheticEvent) => void;
   readonly children: ReactNode;
 }) {
@@ -51,6 +53,12 @@ function Modal({
     <dialog
       ref={ref}
       className={styles.dialog}
+      /*
+       * aria-label rather than aria-labelledby. Editing swaps the heading out
+       * for the name form, so an id reference would dangle exactly while the
+       * user is typing and leave the dialog unnamed at the worst moment.
+       */
+      aria-label={label}
       /*
        * `cancel`, not `close`.
        *
@@ -84,7 +92,7 @@ function Modal({
 
 export function UserNotFound({ onClose }: { readonly onClose: () => void }) {
   return (
-    <Modal onCancel={onClose}>
+    <Modal label="User not found" onCancel={onClose}>
       <div className={styles.notFound}>
         <h2 className={styles.heading}>We could not find that user</h2>
         <p className={styles.subheading}>
@@ -129,7 +137,7 @@ export function UserDetail({
   };
 
   return (
-    <Modal onCancel={handleCancel}>
+    <Modal label={`${user.name}, details`} onCancel={handleCancel}>
       <div className={styles.inner}>
         <div className={styles.header}>
           <div className={styles.headerMain}>
