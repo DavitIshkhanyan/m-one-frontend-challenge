@@ -15,7 +15,7 @@ Built on Node 24 (needs 20.19+).
 ```bash
 npm install
 npm run dev        # http://localhost:5173
-npm test           # 97 tests
+npm test           # 102 tests
 npm run typecheck  # tsc, strict
 npm run build
 ```
@@ -314,7 +314,7 @@ background — below AA, on placeholder text and field labels. It is now 4.95:1 
 
 ## Tests
 
-97 tests, Vitest + Testing Library. They assert behaviour through the UI. No
+102 tests, Vitest + Testing Library. They assert behaviour through the UI. No
 snapshots, no shallow rendering, nothing that renders a component and asserts nothing.
 
 The ones that earn their place:

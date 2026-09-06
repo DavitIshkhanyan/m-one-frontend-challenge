@@ -34,7 +34,7 @@ It is deliberately small. Resist generalising anything here into a framework.
 ```bash
 npm install
 npm run dev         # vite, http://localhost:5173
-npm test            # vitest, single run — 97 tests
+npm test            # vitest, single run — 102 tests
 npm run test:watch
 npm run typecheck   # tsc --noEmit, strict
 npm run build       # typecheck + production build
@@ -225,6 +225,7 @@ Real things that bit during this build.
 | windowing | `src/features/users/UserList.test.tsx` |
 | keyboard, ARIA | `src/features/users/a11y.test.tsx` |
 | error handling, retry | `src/features/users/recovery.test.tsx` |
+| delayed busy indicator | `src/lib/useDelayedFlag.test.ts` |
 
 Then `npm run typecheck && npm test`. For anything touching the dialog,
 layout, or colour, **also open it in a browser** — see the traps above.
