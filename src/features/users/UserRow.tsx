@@ -1,14 +1,7 @@
 import type { MergedUser } from '../../edits/merge';
 import styles from './UserRow.module.css';
 
-function initials(name: string): string {
-  const parts = name.split(/\s+/).filter((part) => part !== '');
-  const first = parts[0] ?? '';
-  const last = parts.length > 1 ? (parts[parts.length - 1] ?? '') : '';
-  return `${first.charAt(0)}${last.charAt(0)}`.toUpperCase();
-}
-
-export function UserRow({
+export const UserRow = ({
   user,
   onSelect,
   position,
@@ -18,7 +11,7 @@ export function UserRow({
   readonly onSelect: (id: number) => void;
   readonly position: number;
   readonly setSize: number;
-}) {
+}) => {
   const hasCity = user.city !== '';
   const hasCompany = user.company !== '';
 
@@ -65,4 +58,11 @@ export function UserRow({
       </button>
     </li>
   );
+};
+
+function initials(name: string): string {
+  const parts = name.split(/\s+/).filter((part) => part !== '');
+  const first = parts[0] ?? '';
+  const last = parts.length > 1 ? (parts[parts.length - 1] ?? '') : '';
+  return `${first.charAt(0)}${last.charAt(0)}`.toUpperCase();
 }

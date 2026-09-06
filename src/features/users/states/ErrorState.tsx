@@ -1,6 +1,28 @@
 import type { RequestError } from '../../../data/net';
 import styles from './states.module.css';
 
+export const ErrorState = ({
+  error,
+  onRetry,
+}: {
+  readonly error: RequestError;
+  readonly onRetry: () => void;
+}) => {
+  const { title, detail, canRetry } = describe(error);
+
+  return (
+    <div className={`${styles.panel} ${styles.error}`} role="alert">
+      <p className={styles.title}>{title}</p>
+      <p className={styles.detail}>{detail}</p>
+      {canRetry && (
+        <button type="button" className={styles.button} onClick={onRetry}>
+          Try again
+        </button>
+      )}
+    </div>
+  );
+};
+
 /**
  * The three failures get different copy because they imply different
  * actions. Telling someone to "try again" when the server sent unreadable
@@ -27,26 +49,4 @@ function describe(error: RequestError): { title: string; detail: string; canRetr
         canRetry: false,
       };
   }
-}
-
-export function ErrorState({
-  error,
-  onRetry,
-}: {
-  readonly error: RequestError;
-  readonly onRetry: () => void;
-}) {
-  const { title, detail, canRetry } = describe(error);
-
-  return (
-    <div className={`${styles.panel} ${styles.error}`} role="alert">
-      <p className={styles.title}>{title}</p>
-      <p className={styles.detail}>{detail}</p>
-      {canRetry && (
-        <button type="button" className={styles.button} onClick={onRetry}>
-          Try again
-        </button>
-      )}
-    </div>
-  );
 }

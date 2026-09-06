@@ -5,7 +5,7 @@ import styles from './states.module.css';
  * there, the user just cannot see it, and the remedy is an action they can
  * take right now - so unlike EmptyState this one has a button.
  */
-export function NoResults({ onClearFilters }: { readonly onClearFilters: () => void }) {
+export const NoResults = ({ onClearFilters }: { readonly onClearFilters: () => void }) => {
   return (
     <div className={`${styles.panel} ${styles.centered}`}>
       <p className={styles.title}>No users match your filters</p>
@@ -15,4 +15,4 @@ export function NoResults({ onClearFilters }: { readonly onClearFilters: () => v
       </button>
     </div>
   );
-}
+};

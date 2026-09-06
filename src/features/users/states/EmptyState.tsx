@@ -6,7 +6,7 @@ import styles from './states.module.css';
  * its own component. Collapsing the two is a common tell that nobody thought
  * about either.
  */
-export function EmptyState() {
+export const EmptyState = () => {
   return (
     <div className={`${styles.panel} ${styles.centered}`}>
       <p className={styles.title}>No users yet</p>
@@ -15,4 +15,4 @@ export function EmptyState() {
       </p>
     </div>
   );
-}
+};

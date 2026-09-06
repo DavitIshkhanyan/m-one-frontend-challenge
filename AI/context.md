@@ -183,7 +183,15 @@ Real things that bit during this build.
 
 ## Conventions
 
-- Named exports. No default exports.
+- Named exports. No default exports. Import sites depend on this; there are no
+  default imports anywhere in the repo.
+- **React components are arrow functions assigned to a `const`.** Helpers, hooks
+  and pure utilities stay `function` declarations.
+- **Helpers live below the component they serve**, at the bottom of the file, so
+  the component is the first thing you read. Function declarations hoist, so the
+  component can call them freely — which is exactly why helpers must not be
+  converted to `const` arrows: that would put them in the temporal dead zone and
+  break the ordering.
 - Tests colocated: `foo.ts` → `foo.test.ts`.
 - No `any`. No `!` non-null assertions. No `as` to silence the checker — if a
   type is wrong, fix the type. Custom CSS properties type-check because

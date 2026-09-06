@@ -2,24 +2,24 @@ import { useEffect, useRef } from 'react';
 import styles from './Toolbar.module.css';
 import type { SortDirection } from './viewState';
 
-function SearchIcon() {
+const SearchIcon = () => {
   return (
     <svg className={styles.searchIcon} viewBox="0 0 20 20" fill="none" aria-hidden="true">
       <circle cx="9" cy="9" r="5.25" stroke="currentColor" strokeWidth="1.5" />
       <path d="m13 13 3.5 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
     </svg>
   );
-}
+};
 
-function Chevron() {
+const Chevron = () => {
   return (
     <svg className={styles.chevron} viewBox="0 0 16 16" fill="none" aria-hidden="true">
       <path d="m4 6 4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
     </svg>
   );
-}
+};
 
-export function Toolbar({
+export const Toolbar = ({
   query,
   onQueryChange,
   city,
@@ -37,7 +37,7 @@ export function Toolbar({
   readonly direction: SortDirection;
   readonly onDirectionChange: (direction: SortDirection) => void;
   readonly summary: string;
-}) {
+}) => {
   // A city arriving from the URL may no longer exist in the data. Keep it as
   // an option so the control shows what is actually being filtered on,
   // instead of rendering blank and looking broken.
@@ -159,4 +159,4 @@ export function Toolbar({
       </p>
     </div>
   );
-}
+};

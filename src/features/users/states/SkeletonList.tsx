@@ -9,7 +9,7 @@ const LINE_WIDTHS = ['58%', '38%'] as const;
  * when data arrives. A spinner would be smaller to build and worse: it tells
  * the user something is happening without telling them what is coming.
  */
-export function SkeletonList() {
+export const SkeletonList = () => {
   const rowHeight = useRowHeight();
 
   return (
@@ -34,4 +34,4 @@ export function SkeletonList() {
       ))}
     </div>
   );
-}
+};

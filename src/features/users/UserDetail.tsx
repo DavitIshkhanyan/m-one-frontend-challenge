@@ -3,30 +3,24 @@ import type { MergedUser } from '../../edits/merge';
 import { NameEditor } from './NameEditor';
 import styles from './UserDetail.module.css';
 
-function CloseIcon() {
+const CloseIcon = () => {
   return (
     <svg viewBox="0 0 20 20" width="18" height="18" fill="none" aria-hidden="true">
       <path d="m5 5 10 10M15 5 5 15" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
     </svg>
   );
-}
+};
 
-function Field({ label, children }: { readonly label: string; readonly children: ReactNode }) {
+const Field = ({ label, children }: { readonly label: string; readonly children: ReactNode }) => {
   return (
     <div>
       <dt className={styles.term}>{label}</dt>
       <dd className={styles.value}>{children}</dd>
     </div>
   );
-}
+};
 
-function formatAddress(user: MergedUser): string {
-  return [user.suite, user.street, user.city, user.zipcode]
-    .filter((part) => part !== '')
-    .join(', ');
-}
-
-function Modal({
+const Modal = ({
   label,
   onCancel,
   children,
@@ -34,7 +28,7 @@ function Modal({
   readonly label: string;
   readonly onCancel: (event: SyntheticEvent) => void;
   readonly children: ReactNode;
-}) {
+}) => {
   const ref = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
@@ -88,9 +82,9 @@ function Modal({
       {children}
     </dialog>
   );
-}
+};
 
-export function UserNotFound({ onClose }: { readonly onClose: () => void }) {
+export const UserNotFound = ({ onClose }: { readonly onClose: () => void }) => {
   return (
     <Modal label="User not found" onCancel={onClose}>
       <div className={styles.notFound}>
@@ -104,9 +98,9 @@ export function UserNotFound({ onClose }: { readonly onClose: () => void }) {
       </div>
     </Modal>
   );
-}
+};
 
-export function UserDetail({
+export const UserDetail = ({
   user,
   onClose,
   onSaveName,
@@ -118,7 +112,7 @@ export function UserDetail({
   readonly onSaveName: (name: string) => void;
   readonly onRevertName: () => void;
   readonly canPersist: boolean;
-}) {
+}) => {
   const [isEditing, setIsEditing] = useState(false);
   const address = formatAddress(user);
 
@@ -246,4 +240,10 @@ export function UserDetail({
       </div>
     </Modal>
   );
+};
+
+function formatAddress(user: MergedUser): string {
+  return [user.suite, user.street, user.city, user.zipcode]
+    .filter((part) => part !== '')
+    .join(', ');
 }

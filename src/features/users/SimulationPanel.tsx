@@ -12,7 +12,7 @@ import { FAILURE_PRESETS, LATENCY_PRESETS, ROW_PRESETS } from './simulation';
  * state can be shared - is more honest than a console incantation buried in
  * the README.
  */
-export function SimulationPanel({
+export const SimulationPanel = ({
   config,
   onChange,
   isActive,
@@ -20,7 +20,7 @@ export function SimulationPanel({
   readonly config: SimulationConfig;
   readonly onChange: (patch: Partial<SimulationConfig>) => void;
   readonly isActive: boolean;
-}) {
+}) => {
   return (
     <details className={styles.panel}>
       <summary className={styles.summary}>
@@ -97,4 +97,4 @@ export function SimulationPanel({
       </div>
     </details>
   );
-}
+};

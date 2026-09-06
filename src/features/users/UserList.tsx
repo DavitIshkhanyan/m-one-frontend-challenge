@@ -4,13 +4,13 @@ import { useRowHeight } from './layout';
 import styles from './UserList.module.css';
 import { UserRow } from './UserRow';
 
-export function UserList({
+export const UserList = ({
   users,
   onSelect,
 }: {
   readonly users: readonly MergedUser[];
   readonly onSelect: (id: number) => void;
-}) {
+}) => {
   const rowHeight = useRowHeight();
   const { containerRef, startIndex, endIndex, totalHeight, offsetY } = useVirtualRows(
     users.length,
@@ -44,4 +44,4 @@ export function UserList({
       </div>
     </div>
   );
-}
+};

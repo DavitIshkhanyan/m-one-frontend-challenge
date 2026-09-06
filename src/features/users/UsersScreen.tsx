@@ -17,30 +17,7 @@ import { SkeletonList } from './states/SkeletonList';
 import { useSimulation } from './simulation';
 import { useViewState } from './viewState';
 
-function summarize({
-  isFirstLoad,
-  hasError,
-  count,
-  total,
-  isFiltered,
-}: {
-  readonly isFirstLoad: boolean;
-  readonly hasError: boolean;
-  readonly count: number;
-  readonly total: number;
-  readonly isFiltered: boolean;
-}): string {
-  if (isFirstLoad) return 'Loading users';
-  if (hasError && count === 0) return 'Could not load users';
-  // Deliberately not the same sentence as the NoResults panel below it:
-  // printing identical copy twice makes a screen reader say it twice and
-  // makes the sighted reader wonder which one is the control.
-  if (count === 0) return isFiltered ? `Showing 0 of ${total} users` : 'No users';
-  if (isFiltered) return `Showing ${count} of ${total} users`;
-  return `${total} ${total === 1 ? 'user' : 'users'}`;
-}
-
-function Body({
+const Body = ({
   status,
   users,
   hasError,
@@ -54,7 +31,7 @@ function Body({
   readonly isFiltered: boolean;
   readonly onClearFilters: () => void;
   readonly onSelect: (id: number) => void;
-}) {
+}) => {
   // First load: nothing to preserve, so show the shape of what is coming.
   if (status === 'loading' && users.length === 0) return <SkeletonList />;
 
@@ -66,9 +43,9 @@ function Body({
   }
 
   return <UserList users={users} onSelect={onSelect} />;
-}
+};
 
-export function UsersScreen() {
+export const UsersScreen = () => {
   const view = useViewState();
   const edits = useEdits();
   const simulation = useSimulation();
@@ -185,4 +162,27 @@ export function UsersScreen() {
       {selectionMissing && <UserNotFound onClose={view.clearSelection} />}
     </div>
   );
+};
+
+function summarize({
+  isFirstLoad,
+  hasError,
+  count,
+  total,
+  isFiltered,
+}: {
+  readonly isFirstLoad: boolean;
+  readonly hasError: boolean;
+  readonly count: number;
+  readonly total: number;
+  readonly isFiltered: boolean;
+}): string {
+  if (isFirstLoad) return 'Loading users';
+  if (hasError && count === 0) return 'Could not load users';
+  // Deliberately not the same sentence as the NoResults panel below it:
+  // printing identical copy twice makes a screen reader say it twice and
+  // makes the sighted reader wonder which one is the control.
+  if (count === 0) return isFiltered ? `Showing 0 of ${total} users` : 'No users';
+  if (isFiltered) return `Showing ${count} of ${total} users`;
+  return `${total} ${total === 1 ? 'user' : 'users'}`;
 }
