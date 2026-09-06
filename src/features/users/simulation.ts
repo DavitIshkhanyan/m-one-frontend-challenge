@@ -62,7 +62,29 @@ export function useSimulation(): {
   readonly isActive: boolean;
 } {
   const params = useUrlSearchParams();
-  const config = useMemo(() => readSimulation(params), [params]);
+
+  /*
+   * Read the primitives first, then memoise on THOSE rather than on the params
+   * object.
+   *
+   * Memoising on `params` rebuilt the config whenever any unrelated parameter
+   * changed - q, city, dir, user - and because the config is a dependency of
+   * the fetch effect, that quietly turned every client-side filter change into
+   * a network request. Measured before the fix: one fetch for a city change and
+   * one for a sort change, neither of which needs the network at all.
+   *
+   * Note that a lint rule would not have found this. The dependency array was
+   * correct; the value's identity was not stable. Only counting real fetches
+   * surfaced it.
+   */
+  const latencyMs = readNumber(params, SIM_PARAM.latency);
+  const failureRate = Math.min(readNumber(params, SIM_PARAM.fail), 1);
+  const rows = Math.round(readNumber(params, SIM_PARAM.rows));
+
+  const config = useMemo<SimulationConfig>(() => {
+    const preset = LATENCY_PRESETS.find((entry) => entry.latencyMs === latencyMs);
+    return { latencyMs, jitterMs: preset?.jitterMs ?? 0, failureRate, rows };
+  }, [latencyMs, failureRate, rows]);
 
   const setConfig = useCallback(
     (patch: Partial<SimulationConfig>) => {

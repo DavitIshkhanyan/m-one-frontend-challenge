@@ -161,6 +161,36 @@ describe('UsersScreen', () => {
     expect(await screen.findByText(/no users match your filters/i)).toBeInTheDocument();
   });
 
+  it('does not touch the network for client-side filters', async () => {
+    // City and sort are pure view transforms over data already in memory.
+    // They went through the network for a while because the simulation config
+    // was memoised on the whole params object, so any URL change minted a new
+    // config and invalidated the fetch effect. Nothing in the types or the
+    // dependency array was wrong, which is why only a fetch count catches it.
+    const fetchMock = vi.fn(async () => jsonResponse([LEANNE, ERVIN]));
+    vi.stubGlobal('fetch', fetchMock);
+
+    const user = userEvent.setup();
+    render(<UsersScreen />);
+    await screen.findByText('Leanne Graham');
+    const afterLoad = fetchMock.mock.calls.length;
+
+    await user.selectOptions(
+      screen.getByRole('combobox', { name: /filter users by city/i }),
+      'Wisokyburgh',
+    );
+    await waitFor(() => expect(screen.queryByText('Leanne Graham')).not.toBeInTheDocument());
+    expect(fetchMock.mock.calls.length).toBe(afterLoad);
+
+    await user.selectOptions(screen.getByRole('combobox', { name: /sort users/i }), 'desc');
+    await waitFor(() => expect(window.location.search).toContain('dir=desc'));
+    expect(fetchMock.mock.calls.length).toBe(afterLoad);
+
+    // The query, by contrast, is a request input and must still refetch.
+    await user.type(screen.getByRole('searchbox', { name: /search users/i }), 'le');
+    await waitFor(() => expect(fetchMock.mock.calls.length).toBeGreaterThan(afterLoad));
+  });
+
   it('applies a query supplied in the URL on first load', async () => {
     window.history.replaceState(null, '', '/?q=ervin');
     stubUsers(LEANNE, ERVIN);
