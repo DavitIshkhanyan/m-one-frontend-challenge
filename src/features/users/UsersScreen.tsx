@@ -4,6 +4,7 @@ import { useUsersQuery, type UsersQueryStatus } from '../../data/useUsersQuery';
 import { clearEdit, saveEdit, useEdits } from '../../edits/editsStore';
 import { applyEdits, type MergedUser } from '../../edits/merge';
 import { isPersistent } from '../../lib/storage';
+import { useDelayedFlag } from '../../lib/useDelayedFlag';
 import { SimulationPanel } from './SimulationPanel';
 import { Toolbar } from './Toolbar';
 import { UserDetail, UserNotFound } from './UserDetail';
@@ -101,7 +102,13 @@ export const UsersScreen = () => {
     view.selectedUserId !== null && selectedUser === null && status === 'success';
 
   const isFirstLoad = status === 'loading' && merged.length === 0;
-  const isRefreshing = status === 'loading' && merged.length > 0;
+
+  /*
+   * Only surfaced once the wait is long enough to notice. Against the real
+   * endpoint every request resolves in milliseconds, so an ungated indicator
+   * flashes on each keystroke and tells the user nothing.
+   */
+  const isRefreshing = useDelayedFlag(status === 'loading' && merged.length > 0);
   const isFiltered = view.query !== '' || view.city !== '';
 
   const summary = summarize({

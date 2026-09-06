@@ -30,16 +30,28 @@
 }
 
 .main {
+  position: relative;
   display: grid;
   gap: var(--space-4);
   align-content: start;
 }
 
-/* A refetch over existing data gets a thin indeterminate bar rather than a
-   skeleton, because replacing a list the user is reading with placeholders
-   is worse than leaving it up for another moment. */
+/*
+ * A refetch over existing data gets a thin indeterminate bar rather than a
+ * skeleton, because replacing a list the user is reading with placeholders is
+ * worse than leaving it up for another moment.
+ *
+ * Absolutely positioned, so it is not a grid child and cannot move anything.
+ * As a normal child it added its own height plus the grid gap - 18px, measured
+ * - which shoved the entire list down every time a request started and back up
+ * when it finished. On a screen that issues a request per keystroke that is a
+ * list jumping under the reader's eyes while they type.
+ */
 .progress {
-  position: relative;
+  position: absolute;
+  inset-inline: 0;
+  top: -5px;
+  z-index: 1;
   height: 2px;
   overflow: hidden;
   background-color: var(--border);
